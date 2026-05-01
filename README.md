@@ -112,6 +112,10 @@ fal-sketch-extension/
   This extension does not own or maintain that workflow.
 - This project is **not affiliated with fal.ai**.
 
+## Credits
+
+- Prompt inspiration shared by [@arrakis_ai](https://x.com/arrakis_ai/status/2049689793118998717).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
