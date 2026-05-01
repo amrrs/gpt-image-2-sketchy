@@ -11,7 +11,7 @@ const PENDING_TTL_MS = 5 * 60 * 1000; // tokens expire after 5 minutes
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: MENU_ID,
-    title: "Trace this image (sketch)",
+    title: "Scribblify this image",
     contexts: ["image"]
   });
 });

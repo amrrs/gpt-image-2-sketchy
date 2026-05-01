@@ -1,4 +1,4 @@
-// Trace — result page logic.
+// Scribblify — result page logic.
 // 1. Calls the fal.ai queue REST API to run the sketch workflow.
 // 2. Reveals the sketch with an animation, then enables the before/after
 //    slider as the primary viewing mode.
@@ -233,7 +233,7 @@ async function tweetIt() {
     log("tweet copy: " + e.message, true);
   }
 
-  const text = "Sketched with Trace ✏️ — powered by fal.ai";
+  const text = "Sketched with Scribblify ✏️ — powered by fal.ai";
   const intent =
     "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
   window.open(intent, "_blank", "noopener,noreferrer");
@@ -249,7 +249,7 @@ async function tweetIt() {
 }
 
 // Renders a 1200x630-ish landscape share card with both images side-by-side
-// and a "made with Trace · powered by fal.ai" footer mark.
+// and a "made with Scribblify · powered by fal.ai" footer mark.
 async function buildShareCard() {
   const W = 1200, H = 630;
   const PAD = 32;
@@ -324,7 +324,7 @@ async function buildShareCard() {
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.font = "500 16px -apple-system, BlinkMacSystemFont, sans-serif";
   ctx.textBaseline = "middle";
-  ctx.fillText("made with Trace", PAD, fy + (FOOTER_H - 16) / 2);
+  ctx.fillText("made with Scribblify", PAD, fy + (FOOTER_H - 16) / 2);
 
   // little fal mark at the right — drawn from the real SVG path so the
   // concave corners and center hole come from SVG fill rules (no
@@ -435,7 +435,7 @@ async function run() {
 
   const entry = await consumeRequestToken();
   if (!entry) {
-    fail("This page must be opened by right-clicking an image. Right-click any image on the web and choose \"Trace this image (sketch)\".");
+    fail("This page must be opened by right-clicking an image. Right-click any image on the web and choose \"Scribblify this image\".");
     return;
   }
   imageUrl = entry.imageUrl;

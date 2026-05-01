@@ -1,18 +1,18 @@
-# Trace — Sketch any image
+# Scribblify — Sketch any image
 
 A Chrome extension that turns any image on the web into a sketch with one
 right-click. Powered by [fal.ai](https://fal.ai).
 
-> Right-click → **Trace this image (sketch)** → drag the slider to reveal
+> Right-click → **Scribblify this image** → drag the slider to reveal
 > the before/after → **Copy share card** to paste anywhere.
 
 ## Screenshot
 
-![Trace extension screenshot](image.png)
+![Scribblify extension screenshot](image.png)
 
 ## What it does
 
-1. Adds a context-menu item on every image: **Trace this image (sketch)**.
+1. Adds a context-menu item on every image: **Scribblify this image**.
 2. Sends the image URL to a fixed fal.ai workflow
    (`workflows/abdul-7gw2467hshf7/gpt-image-2-sketch`).
 3. Opens a result tab with a drag-to-wipe before/after viewer.
@@ -25,7 +25,7 @@ right-click. Powered by [fal.ai](https://fal.ai).
 2. Open `chrome://extensions` in Chrome.
 3. Toggle **Developer mode** on (top right).
 4. Click **Load unpacked** and select this folder.
-5. Click the Trace toolbar icon (the purple petal mark) → paste your
+5. Click the Scribblify toolbar icon (the purple petal mark) → paste your
    fal.ai API key → **Save**.
 
 Get an API key at https://fal.ai/dashboard/keys. It's stored only in
@@ -35,7 +35,7 @@ except in the `Authorization` header sent to `queue.fal.run`.
 ## Use
 
 1. Right-click any image on a web page.
-2. Choose **Trace this image (sketch)** from the context menu.
+2. Choose **Scribblify this image** from the context menu.
 3. A new tab opens with the fal-color spinner while the workflow runs
    (usually about a minute).
 4. When the sketch lands it wipes in over the original. Drag the handle
@@ -57,7 +57,7 @@ The manifest requests:
 
 | Permission       | Why                                                      |
 |------------------|----------------------------------------------------------|
-| `contextMenus`   | Add the right-click "Trace this image" item.             |
+| `contextMenus`   | Add the right-click "Scribblify this image" item.             |
 | `storage`        | Save your fal.ai API key in `chrome.storage.local`.      |
 | `tabs`           | Open the result page in a new tab next to the source.    |
 | `host_permissions: queue.fal.run, fal.media, ...` | Submit jobs and load result images. |
@@ -81,7 +81,7 @@ fal-sketch-extension/
 
 ## Troubleshooting
 
-- **"No fal.ai API key set"** — click the Trace toolbar icon and paste
+- **"No fal.ai API key set"** — click the Scribblify toolbar icon and paste
   your key.
 - **Share card fails to copy / `CORS`** — some hosts (e.g. some CDNs)
   block cross-origin reads of their images. The sketch result itself
