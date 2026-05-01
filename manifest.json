@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Trace — Sketch any image",
+  "version": "1.0.0",
+  "description": "Right-click any image to turn it into a sketch. Powered by fal.ai.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["contextMenus", "storage", "tabs"],
+  "host_permissions": [
+    "https://queue.fal.run/*",
+    "https://fal.run/*",
+    "https://*.fal.media/*",
+    "https://rest.alpha.fal.ai/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "Trace — Settings",
+    "default_popup": "options.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}

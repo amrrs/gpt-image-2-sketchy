@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Trace</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #12121c;
+        --bg-card: #16162a;
+        --bg-card-hover: #1c1c35;
+        --border: #2a2a45;
+        --text-primary: #e2e8f0;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent: #8b5cf6;
+        --accent-hover: #7c3aed;
+        --accent-dim: rgba(139, 92, 246, 0.15);
+        --error: #ef4444;
+        --success: #10b981;
+      }
+
+      html, body {
+        height: 100%;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Subtle radial glow behind the stage */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.10), transparent 50%),
+          radial-gradient(circle at 70% 80%, rgba(56, 172, 198, 0.06), transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .wrap {
+        position: relative;
+        z-index: 1;
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 24px 20px 60px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+      header svg.logo { width: 28px; height: 28px; flex-shrink: 0; }
+      header .title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+      header .subtitle { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+      header .spacer { flex: 1; }
+      header a.icon-btn {
+        color: var(--text-muted);
+        padding: 6px;
+        border-radius: 6px;
+        display: inline-flex;
+        text-decoration: none;
+      }
+      header a.icon-btn:hover { color: var(--text-primary); background: var(--bg-card); }
+
+      /* Stage = the slider container */
+      .stage {
+        position: relative;
+        width: 100%;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        aspect-ratio: 1 / 1;
+        max-height: 70vh;
+        user-select: none;
+        cursor: ew-resize;
+      }
+
+      .stage img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: var(--bg-secondary);
+        display: block;
+      }
+
+      /* Sketch is clipped to a width controlled by the slider position */
+      .stage .sketch-clip {
+        position: absolute;
+        inset: 0;
+        clip-path: inset(0 0 0 50%);
+        transition: clip-path 0.06s linear;
+      }
+
+      .handle {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(255,255,255,0.85);
+        box-shadow: 0 0 16px rgba(139,92,246,0.6);
+        left: 50%;
+        transform: translateX(-50%);
+        pointer-events: none;
+      }
+      .handle::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--accent);
+        transform: translate(-50%, -50%);
+        box-shadow: 0 4px 16px rgba(139,92,246,0.5);
+      }
+      .handle::after {
+        content: "⇄";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        pointer-events: none;
+      }
+
+      .label {
+        position: absolute;
+        top: 12px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        background: rgba(0,0,0,0.55);
+        backdrop-filter: blur(8px);
+        border-radius: 99px;
+        color: white;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .label.before { left: 12px; }
+      .label.after { right: 12px; color: var(--accent); }
+
+      /* Loading overlay sits on top until the sketch is in */
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: rgba(10,10,15,0.6);
+        backdrop-filter: blur(2px);
+        z-index: 3;
+        transition: opacity 0.4s ease;
+      }
+      .overlay.gone { opacity: 0; pointer-events: none; }
+
+      .fal-spinner {
+        width: 56px;
+        height: 56px;
+        animation: fal-spin 4s ease-in-out infinite;
+      }
+      @keyframes fal-spin {
+        0%   { transform: rotate(0deg);    fill: #5718c0; }
+        20%  { transform: rotate(360deg);  fill: #ab77ff; }
+        25%  { transform: rotate(360deg);  fill: #e366af; }
+        45%  { transform: rotate(720deg);  fill: #ec0648; }
+        50%  { transform: rotate(720deg);  fill: #ab77ff; }
+        70%  { transform: rotate(1080deg); fill: #38acc6; }
+        75%  { transform: rotate(1080deg); fill: #3fb5fe; }
+        95%  { transform: rotate(1440deg); fill: #115ef3; }
+        100% { transform: rotate(1440deg); fill: #5718c0; }
+      }
+
+      .overlay .status-title {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .overlay .status-detail {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      /* Reveal animation: when the sketch first appears */
+      .reveal { animation: reveal 1.1s ease forwards; }
+      @keyframes reveal {
+        from { clip-path: inset(0 100% 0 0); }
+        to   { clip-path: inset(0 0 0 50%); }
+      }
+
+      /* Action row */
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.15s;
+      }
+      .btn:hover { background: var(--bg-card-hover); }
+      .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+      .btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+      }
+      .btn.primary:hover { background: var(--accent-hover); }
+      .btn.copied { background: var(--success); border-color: var(--success); color: white; }
+
+      /* Details / log */
+      details.log-wrap {
+        margin-top: 22px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      details.log-wrap summary {
+        padding: 10px 14px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--text-secondary);
+        list-style: none;
+      }
+      details.log-wrap summary::-webkit-details-marker { display: none; }
+      details.log-wrap summary::before {
+        content: "▸ ";
+        color: var(--text-muted);
+      }
+      details.log-wrap[open] summary::before { content: "▾ "; }
+      #log {
+        padding: 10px 14px 14px;
+        font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+        font-size: 11px;
+        max-height: 220px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--border);
+      }
+      #log .err { color: #fca5a5; }
+
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        padding: 10px 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 99px;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.2s, transform 0.2s;
+        pointer-events: none;
+        z-index: 100;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <svg class="logo" viewBox="0 0 624 624" fill="#8b5cf6" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M402.365 0C413.17 0.000231771 421.824 8.79229 422.858 19.5596C432.087 115.528 508.461 191.904 604.442 201.124C615.198 202.161 624 210.821 624 221.638V402.362C624 413.179 615.198 421.839 604.442 422.876C508.461 432.096 432.087 508.472 422.858 604.44C421.824 615.208 413.17 624 402.365 624H221.635C210.83 624 202.176 615.208 201.142 604.44C191.913 508.472 115.538 432.096 19.5576 422.876C8.80183 421.839 0 413.179 0 402.362V221.638C0 210.821 8.80183 202.161 19.5576 201.124C115.538 191.904 191.913 115.528 201.142 19.5596C202.176 8.79215 210.83 0 221.635 0H402.365ZM312 124C208.17 124 124 208.17 124 312C124 415.83 208.17 500 312 500C415.83 500 500 415.83 500 312C500 208.17 415.83 124 312 124Z"/>
+        </svg>
+        <div>
+          <div class="title">Trace</div>
+          <div class="subtitle">drag to reveal · powered by fal.ai</div>
+        </div>
+        <div class="spacer"></div>
+        <a class="icon-btn" href="options.html" target="_blank" title="Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+      </header>
+
+      <div class="stage" id="stage">
+        <img id="srcImg" alt="Original" />
+        <div class="sketch-clip" id="sketchClip">
+          <img id="sketchImg" alt="Sketch" />
+        </div>
+        <div class="label before">Before</div>
+        <div class="label after">After</div>
+        <div class="handle" id="handle"></div>
+
+        <div class="overlay" id="overlay">
+          <svg class="fal-spinner" viewBox="0 0 624 624" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M402.365 0C413.17 0.000231771 421.824 8.79229 422.858 19.5596C432.087 115.528 508.461 191.904 604.442 201.124C615.198 202.161 624 210.821 624 221.638V402.362C624 413.179 615.198 421.839 604.442 422.876C508.461 432.096 432.087 508.472 422.858 604.44C421.824 615.208 413.17 624 402.365 624H221.635C210.83 624 202.176 615.208 201.142 604.44C191.913 508.472 115.538 432.096 19.5576 422.876C8.80183 421.839 0 413.179 0 402.362V221.638C0 210.821 8.80183 202.161 19.5576 201.124C115.538 191.904 191.913 115.528 201.142 19.5596C202.176 8.79215 210.83 0 221.635 0H402.365ZM312 124C208.17 124 124 208.17 124 312C124 415.83 208.17 500 312 500C415.83 500 500 415.83 500 312C500 208.17 415.83 124 312 124Z"/>
+          </svg>
+          <div>
+            <div class="status-title" id="statusTitle">Tracing your image…</div>
+            <div class="status-detail" id="statusDetail">This usually takes about a minute.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="copyShare" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy share card
+        </button>
+        <button class="btn" id="tweet" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Tweet it
+        </button>
+        <a class="btn" id="download" download="trace-sketch.png" style="pointer-events:none;opacity:0.4">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download sketch
+        </a>
+        <button class="btn" id="again" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Trace again
+        </button>
+      </div>
+
+      <details class="log-wrap">
+        <summary>Details</summary>
+        <div id="log"></div>
+      </details>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="result.js"></script>
+  </body>
+</html>
