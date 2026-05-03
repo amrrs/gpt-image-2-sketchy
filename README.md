@@ -9,6 +9,7 @@ right-click. Powered by [fal.ai](https://fal.ai).
 ## Screenshot
 
 ![Scribblify extension screenshot](image.png)
+![Example sketch result](image%20copy.png)
 
 ## What it does
 
